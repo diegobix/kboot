@@ -20,4 +20,9 @@ SECTIONS {
         *(.text.stage2)
         *(.text.*)
     }
+
+    .data : {
+        *(.data.stage2)
+        *(.data.*)
+    }
 }

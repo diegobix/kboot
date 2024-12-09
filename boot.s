@@ -53,7 +53,7 @@ initial_config:
     cli
 ; Activamos la línea A20 del procesador, que está desactivada por defecto.
 ; Esto nos permite tener 21 bits para direcciones (activando el bit 20).
-; Para lograrlo, utilizamos el puerto del teclado.
+; Para lograrlo, utilizamos el puerto del teclado??
 enable_a20_1:
     ; Leer desde el puerto 0x64
     in al, 0x64
@@ -110,11 +110,21 @@ name db "By Diego Arenas", 0
 ; times 510-($-$$) db 0 ; Ya no es necesario, se maneja en el linker script
 ; db 0x55, 0xaa
 
+[bits 32] ; Estamos trabajando ya con 32 bits
 section .text.stage2
 stage2:
-; para que qemu no salga
-loop_inf:
-    hlt
-    jmp $
+load_data_segment:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+
+    mov ax, 0
+    mov fs, ax
+    mov gs, ax
+
+jump_to_c:
+[extern boot_main]
+    call boot_main
 
 stage2_end:

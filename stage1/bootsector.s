@@ -126,7 +126,7 @@ read_msg db "Leyendo del disco...", 0
 read_error db "Error al leer del disco (1)", 0
 read_error2 db "Error al leer del disco (2)", 0
 
-STAGE2_DIR equ 0x8000
+STAGE2_DIR equ 0x7e00
 
 times 510 - ($-$$) db 0
 dw 0xaa55   ; Magic number

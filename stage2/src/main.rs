@@ -3,17 +3,13 @@
 
 use core::{arch::asm, panic::PanicInfo};
 
+use stage2::{vga_print, vga_println};
+
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-    let message = b"Hello Rust! Si lees esto es que funciono!";
-
-    for (i, &byte) in message.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0x07; // Light grey on black
-        }
-    }
+    
+    vga_print!("Hola desde VGA!");
+    vga_println!("Soy Diego!");
 
     #[allow(clippy::empty_loop)]
     loop {

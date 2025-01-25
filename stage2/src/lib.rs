@@ -1,6 +1,6 @@
 #![no_std]
 
-pub mod vga_buffer;
+pub mod vga_video_buffer;
 
 /// Representa la cabecera ELF.
 #[repr(C)]

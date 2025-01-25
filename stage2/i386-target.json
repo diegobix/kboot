@@ -10,5 +10,6 @@
   "linker": "rust-lld",
   "panic-strategy": "abort",
   "features": "-mmx,-sse,+soft-float",
-  "disable-redzone": true
+  "disable-redzone": true,
+  "dynamic-linking": false
 }

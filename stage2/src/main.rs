@@ -1,19 +1,24 @@
 #![no_std]
 #![no_main]
 
-use core::{arch::asm, panic::PanicInfo};
+use core::{arch::asm, fmt, panic::PanicInfo};
 
-use stage2::{vga_print, vga_println};
+use stage2::{vga_log, vga_logln, vga_video_buffer::VgaBuffer};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     
-    vga_print!("Hola desde VGA!");
-    vga_println!("Soy Diego!");
+    vga_logln!("Hola macro!");
+    vga_logln!("Bye!");
 
-    #[allow(clippy::empty_loop)]
+    for i in 0..10 {
+        vga_logln!("X");
+    }
+
     loop {
-        unsafe {asm!("hlt");}
+        unsafe {
+            asm!("hlt");
+        }
     }
 }
 

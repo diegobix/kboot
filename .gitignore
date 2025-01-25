@@ -2,5 +2,6 @@
 *.o
 *.elf
 *.img
+*.asm
 .vscode/
 

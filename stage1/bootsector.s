@@ -52,20 +52,21 @@ read_stage2:
   lea si, read_msg
   call print_string
 
-  mov bx, STAGE2_DIR
   mov ah, 0x02
-  mov al, 15
+  mov al, 9
   mov ch, 0
-  mov dh, 0
-  mov dl, 0
   mov cl, 0x02
+  mov dh, 0
+  mov dl, 0x80
+  mov bx, STAGE2_DIR
+  ; mov es, 0
   int 0x13
 
   jc read_stage2_error
 
-  mov dh, 15
-  cmp dh, al
-  jne read_stage2_error2
+  ; mov dh, 15
+  ; cmp dh, al
+  ; jne read_stage2_error2
   jmp change_to_protected
 
 read_stage2_error:

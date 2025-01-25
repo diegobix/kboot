@@ -12,11 +12,11 @@ stage2.bin: stage2.elf
 	objcopy -O binary stage2.elf stage2.bin
 
 stage2.elf: stage2/src/*.rs
-	cd stage2 && cargo build --release
-	cp stage2/target/i386-target/release/stage2 ./stage2.elf
+	cd stage2 && cargo build
+	cp stage2/target/i386-target/debug/stage2 ./stage2.elf
 
 run: all
-	qemu-system-i386 -drive file=drive.img,format=raw,if=floppy
+	qemu-system-i386 -drive file=drive.img,format=raw
 
 clean:
 	rm -f ./*.bin ./*.elf ./*.img stage1/*.bin

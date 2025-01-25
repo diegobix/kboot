@@ -3,16 +3,16 @@
 global _init
 
 _init:
-  cli
+  cli ; Desactivamos las interrupciones
 
-  xor ax, ax
+  xor ax, ax  ; Registros de segmento a 0
   mov ds, ax
   mov ss, ax
   mov es, ax
 
-  mov bp, 0x7c00
+  mov bp, 0x7c00  ; El stack crece hacia abajo -> hacia la dirección contraria del bootlaoder
   mov sp, 0x7c00
-
+ ; Activamos video mode 3
 ; Activamos la línea A20 del procesador, que está desactivada por defecto.
 ; Esto nos permite tener 21 bits para direcciones (activando el bit 20).
 ; Para lograrlo, utilizamos el puerto del teclado.
@@ -42,12 +42,13 @@ enable_a20_2:
   ; Escribir AL en el puerto 0x60
   out 0x60, al
 
-  sti
+  sti ; Reactivamos interrupciones
 video_mode:
-  mov ah, 0
+  mov ah, 0 ; Activamos video mode 3
   mov al, 0x03
   int 0x10
 
+; Cargamos en la memoria la segunda fase del bootloader
 read_stage2:
   lea si, read_msg
   call print_string

@@ -1,6 +1,6 @@
-use core::{
-    fmt::{self, Arguments, Write}, ptr::write_volatile
-};
+use core::
+    ptr::write_volatile
+;
 
 static mut VGA_BUFFER: Option<VgaBuffer> = None;
 
@@ -91,7 +91,6 @@ impl VgaBuffer {
 
     fn print_char(&mut self, char: char) {
         if char == '\n' || self.col >= VGA_BUFFER_WIDTH {
-            // _print(format_args!("new line"));
             self.new_line();
             return;
         }

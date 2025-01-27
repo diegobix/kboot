@@ -11,8 +11,9 @@ _init:
   mov es, ax
 
   mov bp, 0x7c00  ; El stack crece hacia abajo -> hacia la dirección contraria del bootlaoder
-  mov sp, 0x7c00
- ; Activamos video mode 3
+  ; mov sp, 0x7c00
+
+; Activamos video mode 3
 ; Activamos la línea A20 del procesador, que está desactivada por defecto.
 ; Esto nos permite tener 21 bits para direcciones (activando el bit 20).
 ; Para lograrlo, utilizamos el puerto del teclado.
@@ -127,6 +128,8 @@ spin:
 read_msg db "Leyendo del disco...", 0
 read_error db "Error al leer del disco (1)", 0
 read_error2 db "Error al leer del disco (2)", 0
+
+cli
 
 STAGE2_DIR equ 0x7e00
 

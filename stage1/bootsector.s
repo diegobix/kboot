@@ -18,25 +18,29 @@ _init:
 ; Esto nos permite tener 21 bits para direcciones (activando el bit 20).
 ; Para lograrlo, utilizamos el puerto del teclado.
 enable_a20_1:
+enable_a20_1_wait:
+  ; En este bucle esperamos hasta que no este ocupado el controlador del puerto
   ; Leer desde el puerto 0x64
   in al, 0x64
   ; Comprobar el bit 1 de AL
-  test al, 0x02
+  test al, 2
   ; Si el bit 1 está activado, saltar a enable_a20_1
-  jnz enable_a20_1
+  jnz enable_a20_1_wait
 
   ; Establecer AL en 0xd1
   mov al, 0xd1
   ; Escribir AL en el puerto 0x64
-  out 0x64, al
+  out 0x64, al  ; El comando 0xd1 indica que queremos enviar un comando
 
 enable_a20_2:
+enable_a20_2_wait:
+  ; Volvemos a esperar a que esté listo el controlador
   ; Leer desde el puerto 0x64
   in al, 0x64
   ; Comprobar el bit 1 de AL
-  test al, 0x02
+  test al, 2
   ; Si el bit 1 está activado, saltar a enable_a20_2
-  jnz enable_a20_2
+  jnz enable_a20_2_wait
 
   ; Establecer AL en 0xdf
   mov al, 0xdf
@@ -82,13 +86,17 @@ read_stage2_error2:
   jmp $
 
 change_to_protected:
-cli
-  lgdt [gdt_descriptor]
-  mov eax, cr0
+  lea si, read_ok
+  call print_string
+  cli ; Desactivamos interrupciones
+  
+  lgdt [gdt_descriptor] ; Cargamos GDT
+
+  mov eax, cr0  ; Activamos bit de modo protegido
   or eax, 1
   mov cr0, eax
 
-  jmp CODE_SEG:start_32
+  jmp CODE_SEG:start_32 ; Salto largo al segmento de código de la GDT
 
 
 ; Procedures 
@@ -128,6 +136,8 @@ spin:
 read_msg db "Leyendo del disco...", 0
 read_error db "Error al leer del disco (1)", 0
 read_error2 db "Error al leer del disco (2)", 0
+read_ok db "Disco leido! Cambiando a modo protegido...", 0
+
 
 cli
 

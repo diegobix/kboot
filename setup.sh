@@ -39,6 +39,6 @@ sudo -u $SUDO_USER bash -c '
   . $HOME/.cargo/env
   rustup override set nightly
   rustup component add rust-src
-  echo "Dependencias instaladas. Para ejecutar el proyecto usa \"make run\""
+  echo "Script finalizado, comprueba si ha habido errores. Para ejecutar el proyecto usa \"make run\""
   exec $SHELL
 '

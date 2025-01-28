@@ -1,7 +1,7 @@
 [bits 16]
 [org 0x7c00]
-global _init
 
+global _init
 _init:
   cli ; Desactivamos las interrupciones
 
@@ -58,21 +58,18 @@ read_stage2:
   lea si, read_msg
   call print_string
 
-  mov ah, 0x02
-  mov al, 9
-  mov ch, 0
-  mov cl, 0x02
-  mov dh, 0
-  mov dl, 0x80
-  mov bx, STAGE2_DIR
+  mov ah, 0x02  ; Int 13 - 2
+  mov al, 9 ; sectores a leer
+  mov ch, 0 ; cilindro
+  mov cl, 0x02 ; primer sector a leer
+  mov dh, 0 ; cabeza del disco
+  mov dl, 0x80 ; disco duro
+  mov bx, STAGE2_DIR ; ES:BX -> Dirección donde cargarlo
   ; mov es, 0
   int 0x13
 
   jc read_stage2_error
 
-  ; mov dh, 15
-  ; cmp dh, al
-  ; jne read_stage2_error2
   jmp change_to_protected
 
 read_stage2_error:
@@ -103,7 +100,8 @@ change_to_protected:
 print_string:
   mov ah, 0x0e
 print_loop:
-  lodsb
+  lodsb ; instrucción para cargar en al el char
+        ; apuntado en si e incrementar si
   cmp al, 0
   je print_done
   int 0x10
@@ -125,8 +123,9 @@ start_32:
   mov ebp, 0x7c00
   mov esp, ebp
 
-  call STAGE2_DIR ; 
+  call STAGE2_DIR ; Saltamos a la segunda fase (función _start de stage2)
 
+; bucle infinito de fallback
 spin:
   hlt
   jmp spin

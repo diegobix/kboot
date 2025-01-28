@@ -15,8 +15,12 @@ stage2.elf: stage2/src/*.rs
 	cd stage2 && cargo build
 	cp stage2/target/i386-target/debug/stage2 ./stage2.elf
 
-run: all
+run: os-image
 	qemu-system-i386 -drive file=drive.img,format=raw
+
+debug: os-image
+	qemu-system-i386 -drive file=drive.img,format=raw -S -s &
+	gdb stage2.elf
 
 clean:
 	rm -f ./*.bin ./*.elf ./*.img stage1/*.bin

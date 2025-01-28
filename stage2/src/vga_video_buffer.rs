@@ -4,6 +4,7 @@ use core::
 
 static mut VGA_BUFFER: Option<VgaBuffer> = None;
 
+/// Representa un color del buffer vga
 #[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum Colour {
@@ -25,6 +26,7 @@ pub enum Colour {
     White,
 }
 
+/// Estructura que contiene cada caracter del VGA Buffer
 #[derive(Clone, Copy)]
 #[repr(C)]
 struct PrintableChar {
@@ -33,6 +35,11 @@ struct PrintableChar {
 }
 
 impl PrintableChar {
+    /// Constructor de PrintableChar
+    /// 
+    /// ## Arguments
+    /// * `foreground` - Color del texto.
+    /// * `background` - Color del fondo.
     fn new(char: u8, foreground: u8, background: u8) -> Self {
         PrintableChar {
             char,
@@ -50,14 +57,18 @@ impl Default for PrintableChar {
     }
 }
 
+// constantes de tamaño del buffer
 const VGA_BUFFER_WIDTH: usize = 80;
 const VGA_BUFFER_HEIGHT: usize = 25;
 
+/// Dirección VGA Buffer 
 const VGA_BUFFER_ADDR: usize = 0xb8000;
 
+/// Representa la memoria del VGA Buffer
 #[repr(transparent)]
 struct Buffer([[PrintableChar; VGA_BUFFER_WIDTH]; VGA_BUFFER_HEIGHT]);
 
+/// Representa el VGA Buffer
 pub struct VgaBuffer {
     col: usize,
     f_colour: Colour,
@@ -66,15 +77,8 @@ pub struct VgaBuffer {
 }
 
 impl VgaBuffer {
-    fn new(f_colour: Colour, b_colour: Colour) -> Self {
-        VgaBuffer {
-            col: 0,
-            f_colour,
-            b_colour,
-            buffer: VGA_BUFFER_ADDR as *mut Buffer,
-        }
-    }
 
+    /// Singleton
     pub fn instance() -> &'static mut Self {
         unsafe {
             if VGA_BUFFER.is_none() {
@@ -127,6 +131,7 @@ impl VgaBuffer {
     }
 }
 
+/// Imprime un string en el VGA_BUFFFER
 #[macro_export]
 macro_rules! vga_log {
     ($msg:expr) => {
@@ -134,6 +139,7 @@ macro_rules! vga_log {
     };
 }
 
+/// Imprime un string con salto de linea en el VGA_BUFFFER
 #[macro_export]
 macro_rules! vga_logln {
     ($msg:expr) => {

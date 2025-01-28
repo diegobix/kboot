@@ -31,8 +31,12 @@ else
   echo "nasm make binutils qemu-system-x86 curl"
 fi
 
+echo "Instalando Rust para el usuario $SUDO_USER"
+sudo -u $SUDO_USER bash -c '
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  . $HOME/.cargo/env
+'
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-export PATH="/root/.cargo/bin:${PATH}"
+echo "Se ha hecho el source de $HOME/.cargo/env, ya puedes usar cargo"
 
 echo "Dependencias instaladas. Para ejecutar el proyecto usa \"make run\""

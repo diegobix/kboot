@@ -77,6 +77,14 @@ pub struct VgaBuffer {
 }
 
 impl VgaBuffer {
+    fn new(f_colour: Colour, b_colour: Colour) -> Self {
+        VgaBuffer {
+            col: 0,
+            f_colour,
+            b_colour,
+            buffer: VGA_BUFFER_ADDR as *mut Buffer,
+        }
+    }
 
     /// Singleton
     pub fn instance() -> &'static mut Self {

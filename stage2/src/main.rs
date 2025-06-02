@@ -3,22 +3,29 @@
 
 use core::{arch::asm, panic::PanicInfo};
 
-use stage2::{vga_log, vga_logln, vga_video_buffer::VgaBuffer};
+use stage2::{ata, fat::BootSector};
 
 #[no_mangle]
+#[link_section = ".text.boot"]
 pub extern "C" fn _start() -> ! {
-    use stage2::vga_video_buffer::Colour;
+    // vga_logln!("HolA");
 
-    VgaBuffer::change_colour(VgaBuffer::instance(), Colour::Red, Colour::Black);
-    vga_logln!("Hola!");
-    VgaBuffer::change_colour(VgaBuffer::instance(), Colour::LightGreen, Colour::DarkGray);
-    vga_logln!("La segunda etapa / kernel esta cargada!");
-    vga_logln!("\n\n\n\n\n");
+    unsafe { 
+        let bpb = &*(0x7c00 as *const BootSector);
+    
+        let kernel_dest = 0x0010_0000 as *mut u16;
+        ata::read_sectors_lba(88, 1, kernel_dest).unwrap();
 
-    VgaBuffer::instance().change_colour(Colour::White, Colour::Black);
+        asm!("mov esp, {}", in(reg) 0x0009_0000);
+        asm!("xor eax, eax");
+        asm!("xor ebx, ebx");
+        asm!("xor ecx, ecx");
+        asm!("xor edx, edx");
+        asm!("xor esi, esi");
 
-    vga_logln!("Kboot");
-    vga_logln!("by Diego Arenas");
+        let entry_point: extern "C" fn() = core::mem::transmute(kernel_dest as *const u8);
+        entry_point();
+    }
 
     loop {
         unsafe {

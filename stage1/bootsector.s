@@ -148,13 +148,12 @@ spin:
 
 %include "gdt.s"
 
-align 16
 dap_packet:
   db 0x10
   db 0
-  dw 8
+  dw 12
   dw STAGE2_DIR
-  dw STAGE2_DIR >> 4
+  dw 0
   dq 76
 
 read_msg db "Leyendo del disco...", 0

@@ -149,12 +149,12 @@ spin:
 %include "gdt.s"
 
 dap_packet:
-  db 0x10
-  db 0
-  dw 12
-  dw STAGE2_DIR
-  dw 0
-  dq 76
+  db 0x10       ; Tamaño del DAP
+  db 0          ; Reservado
+  dw 24         ; Numero de sectores
+  dw STAGE2_DIR ; Buffer de destino
+  dw 0          ; Segmento del buffer de destino
+  dq 76         ; LBA
 
 read_msg db "Leyendo del disco...", 0
 read_error db "Error al leer del disco (1)", 0

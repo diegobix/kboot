@@ -3,24 +3,25 @@ ENTRY(_start)
 SECTIONS {
   . = 0x8000;
 
-  .text.boot : {
-    KEEP(*(.text.boot))
-  }
-
   .text : {
+    KEEP(*(.text.boot))
     *(.text .text.*)
-    *(.data .data.*)
-    *(.sbss* .sbss.*)
+
+    . = ALIGN(4);
     *(.rodata .rodata.*)
+    *(.data .data.*)
+    *(.got .got.*)
+    *(.got.pls .got.plt.*)
+  }
+
+  .bss : ALIGN(4) {
+    __bss_start = .;
     *(.bss .bss.*)
+    *(.sbss .sbss.*)
+    *(COMMON)
+    __bss_end = .;
   }
-
-  /* .rodata : {
-  }
-
-  .data : {
-  }
-
-  .bss : {
-  } */
 }
+
+PROVIDE(__bss_start = __bss_start);
+PROVIDE(__bss_end = __bss_end);

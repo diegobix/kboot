@@ -13,7 +13,7 @@ bootsector.bin: stage1/bootsector.s
 	nasm -f bin -o $@ $< -I stage1
 
 stage2.bin: stage2.elf
-	objcopy -O binary stage2.elf stage2.bin
+	objcopy -O binary --gap-fill=0x00 stage2.elf stage2.bin
 
 stage2.elf: stage2/src/*.rs
 	cd stage2 && cargo build
@@ -27,7 +27,7 @@ debug: os-image
 	gdb stage2.elf
 
 clean:
-	rm -f ./*.bin ./*.elf ./*.img stage1/*.bin
+	rm -f ./*.elf ./*.img stage1/*.bin
 	cd stage2 && cargo clean
 
 .PHONY: all os-image bootsector.bin stage2.bin stage2 run clean

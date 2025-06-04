@@ -96,13 +96,25 @@ fn get_root_dir_sectors(bpb: &BootSector) -> (u32, u32) {
 }
 
 /// Get initial cluster for given filename
-pub fn find_file(name: &str) -> u16 {
-    let mut splitted = name.split('.');
-    let mut target = [b' '; 11];
-    target[..8].copy_from_slice(splitted.next().unwrap().as_bytes());
-    target[8..].copy_from_slice(splitted.next().unwrap().as_bytes());
+pub fn find_file(name: &[u8]) -> u16 {
 
-    let bpb = unsafe { &*(0x8000 as *const BootSector) };
+    let mut target = [b' '; 11];
+
+    let mut dot_pos = 0;
+    for (i, b) in name.iter().enumerate() {
+        if *b == b'.' {
+            dot_pos = i;
+        }
+    }
+
+    target[..dot_pos].copy_from_slice(&name[..dot_pos]);
+
+    let extension_start = dot_pos + 1;
+    let remaining = name.len() - extension_start;
+
+    target[8..(remaining+8)].copy_from_slice(&name[extension_start..(extension_start+remaining)]);
+
+    let bpb = unsafe { &*(0x7c00 as *const BootSector) };
     let (root_dir_first_sector, root_sectors) = get_root_dir_sectors(bpb);
     let bytes_sector = bpb.bytes_per_sector;
 
@@ -137,5 +149,5 @@ pub fn find_file(name: &str) -> u16 {
         }
     }
 
-    return 0;
+    0
 }

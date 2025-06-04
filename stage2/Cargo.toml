@@ -5,3 +5,5 @@ edition = "2021"
 
 [profile.dev]
 opt-level = "s"
+debug = true
+lto = false

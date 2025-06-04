@@ -3,7 +3,7 @@
 
 use core::{arch::asm, panic::PanicInfo};
 
-use stage2::{ata, fat::BootSector};
+use stage2::{ata, fat::{find_file, BootSector}};
 
 #[no_mangle]
 #[link_section = ".text.boot"]
@@ -13,6 +13,7 @@ pub extern "C" fn _start() -> ! {
     unsafe { 
         let bpb = &*(0x7c00 as *const BootSector);
     
+        let cluster = find_file("KERNEL.BIN");
         let kernel_dest = 0x0010_0000 as *mut u16;
         ata::read_sectors_lba(88, 1, kernel_dest).unwrap();
 

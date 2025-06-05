@@ -89,8 +89,7 @@ fn get_root_dir_sectors(bpb: &BootSector) -> (u32, u32) {
     let first_root_dir_sector: u32 =
         bpb.reserved_sectors as u32 + (bpb.num_fats as u32 * bpb.fat_size_sectors as u32);
     let root_dir_bytes = bpb.root_entry_count as u32 * 32;
-    let number_of_sectors =
-        (root_dir_bytes + bpb.bytes_per_sector as u32 - 1) / bpb.bytes_per_sector as u32;
+    let number_of_sectors = root_dir_bytes.div_ceil(bpb.bytes_per_sector as u32);
 
     (first_root_dir_sector, number_of_sectors)
 }

@@ -1,7 +1,7 @@
 [bits 16]
-[org 0x7c00]
-global _init
+[org 0x7c3e]  ; FAT16 salta a esta instrucción al iniciar el bootsector
 
+global _init
 _init:
   cli ; Desactivamos las interrupciones
 
@@ -58,15 +58,30 @@ read_stage2:
   lea si, read_msg
   call print_string
 
-  mov ah, 0x02
-  mov al, 9
-  mov ch, 0
-  mov cl, 0x02
-  mov dh, 0
+  mov si, dap_packet
   mov dl, 0x80
-  mov bx, STAGE2_DIR
-  ; mov es, 0
+  mov ah, 0x42
   int 0x13
+  mov si, after_int
+  call print_string
+  jc read_stage2_error 
+  jmp change_to_protected
+  ; -----------------------------------------------------------------------------
+  ; Utiliza la interrupción 0x13 para leer 9 sectores (AL=9) del disco duro (DL=0x80)
+  ; comenzando desde el cilindro 0 (CH=0), sector 36 (CL=36), cabeza 0 (DH=0).
+  ; El buffer de destino está en la dirección apuntada por BX (STAGE2_DIR).
+  ; AH=0x02 indica la función de "leer sectores desde disco".
+  ; ES:BX debe apuntar al buffer de destino (ES está comentado, se asume 0).
+  ; -----------------------------------------------------------------------------
+  ; mov ah, 0x02
+  ; mov al, 8
+  ; mov ch, 1
+  ; mov cl, 13
+  ; mov dh, 0
+  ; mov dl, 0x80
+  ; mov bx, STAGE2_DIR
+  ; mov es, 0
+  ; int 0x13
 
   jc read_stage2_error
 
@@ -122,7 +137,7 @@ start_32:
   mov fs, ax
   mov gs, ax
 
-  mov ebp, 0x7c00
+  mov ebp, 0x9FFFF
   mov esp, ebp
 
   call STAGE2_DIR ; 
@@ -133,15 +148,24 @@ spin:
 
 %include "gdt.s"
 
+dap_packet:
+  db 0x10       ; Tamaño del DAP
+  db 0          ; Reservado
+  dw 20         ; Numero de sectores
+  dw STAGE2_DIR ; Buffer de destino
+  dw 0          ; Segmento del buffer de destino
+  dq 76         ; LBA
+
 read_msg db "Leyendo del disco...", 0
 read_error db "Error al leer del disco (1)", 0
 read_error2 db "Error al leer del disco (2)", 0
 read_ok db "Disco leido! Cambiando a modo protegido...", 0
+after_int db "INT13 returned!", 0
 
 
 cli
 
-STAGE2_DIR equ 0x7e00
+STAGE2_DIR equ 0x8000
 
-times 510 - ($-$$) db 0
-dw 0xaa55   ; Magic number
+; times 510 - ($-$$) db 0
+; dw 0xaa55   ; Magic number

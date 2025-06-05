@@ -1,52 +1,52 @@
 #![no_std]
 #![no_main]
 
-use core::{arch::asm, hint::black_box, panic::PanicInfo};
+use core::{arch::asm, panic::PanicInfo};
 
-use stage2::{ata, fat::{find_file, BootSector}};
+use stage2::fat::{find_file, load_file};
 
-unsafe fn write_debug(row: usize, message: &[u8]) {
+pub fn write_debug(row: usize, message: &[u8]) {
     let vga_buffer = 0xB8000 as *mut u8;
-    for (i, &byte) in message.iter().enumerate() {
-        *vga_buffer.add(row * 160 + i * 2) = byte;
-        *vga_buffer.add(row * 160 + i * 2 + 1) = 0x0F; // Blanco sobre negro
+    unsafe {
+        for (i, &byte) in message.iter().enumerate() {
+            *vga_buffer.add(row * 160 + i * 2) = byte;
+            *vga_buffer.add(row * 160 + i * 2 + 1) = 0x0F; // Blanco sobre negro
+        }
     }
 }
+
+#[used]
+#[link_section = ".rodata"]
+static FILE_NAME: &str = "KERNEL.BIN";
+
+#[used]
+#[link_section = ".rodata"]
+static KERNEL_ADDR: usize = 0x20000;
 
 #[no_mangle]
 #[link_section = ".text.boot"]
 pub extern "C" fn _start() -> ! {
-    unsafe {write_debug(0, b"Hello World!");}
-    // inicializar bss
-    let test_value: u8 = black_box(0x42);
-    let mut stack_test = black_box(0u8);
-    stack_test = black_box(0x55);
+    write_debug(1, "Fase 2 iniciada!".as_bytes());
 
-    black_box(&test_value);
-    black_box(&stack_test);
+    unsafe {
+        // Buscamos el primer cluster en la Root Dir
+        let filename = FILE_NAME;
+        let first_cluster = find_file(filename.as_bytes());
 
-    let mut simple_array = [0u8; 4];
-    simple_array[0] = 0x4B;
-    simple_array[1] = 0x45;
+        // Cargamos cada cluster siguiendo la FAT
+        load_file(first_cluster, KERNEL_ADDR);
 
-    unsafe { 
-        let bpb = &*(0x7c00 as *const BootSector);
+        write_debug(2, "Saltando al kernel".as_bytes());
 
-    
-        let filename_bytes = *b"KERNEL.BIN";
-
-        let cluster = find_file(&filename_bytes);
-        black_box(&cluster);
-        let kernel_dest = 0x0010_0000 as *mut u16;
-        ata::read_sectors_lba(88, 1, kernel_dest).unwrap();
-
+        // Limpiamos registros para el kernel
         asm!("xor eax, eax");
         asm!("xor ebx, ebx");
         asm!("xor ecx, ecx");
         asm!("xor edx, edx");
         asm!("xor esi, esi");
 
-        let entry_point: extern "C" fn() = core::mem::transmute(kernel_dest as *const u8);
+        // Saltamos al kernel
+        let entry_point: extern "C" fn() = core::mem::transmute(KERNEL_ADDR as *const u8);
         entry_point();
     }
 

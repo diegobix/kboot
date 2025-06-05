@@ -90,14 +90,13 @@ fn get_root_dir_sectors(bpb: &BootSector) -> (u32, u32) {
         bpb.reserved_sectors as u32 + (bpb.num_fats as u32 * bpb.fat_size_sectors as u32);
     let root_dir_bytes = bpb.root_entry_count as u32 * 32;
     let number_of_sectors =
-        ((root_dir_bytes + bpb.bytes_per_sector as u32 - 1) / bpb.bytes_per_sector as u32) as u32;
+        (root_dir_bytes + bpb.bytes_per_sector as u32 - 1) / bpb.bytes_per_sector as u32;
 
     (first_root_dir_sector, number_of_sectors)
 }
 
 /// Get initial cluster for given filename
 pub fn find_file(name: &[u8]) -> u16 {
-
     let mut target = [b' '; 11];
 
     let mut dot_pos = 0;
@@ -112,14 +111,15 @@ pub fn find_file(name: &[u8]) -> u16 {
     let extension_start = dot_pos + 1;
     let remaining = name.len() - extension_start;
 
-    target[8..(remaining+8)].copy_from_slice(&name[extension_start..(extension_start+remaining)]);
+    target[8..(remaining + 8)]
+        .copy_from_slice(&name[extension_start..(extension_start + remaining)]);
 
     let bpb = unsafe { &*(0x7c00 as *const BootSector) };
     let (root_dir_first_sector, root_sectors) = get_root_dir_sectors(bpb);
     let bytes_sector = bpb.bytes_per_sector;
 
     let buffer =
-        unsafe { core::slice::from_raw_parts_mut(0x10000 as *mut u8, bytes_sector as usize) };
+        unsafe { core::slice::from_raw_parts_mut(0x5000 as *mut u8, bytes_sector as usize) };
     unsafe {
         for i in 0..root_sectors {
             read_sectors_lba(
@@ -150,4 +150,51 @@ pub fn find_file(name: &[u8]) -> u16 {
     }
 
     0
+}
+
+unsafe fn load_fat(bpb: &BootSector) {
+    read_sectors_lba(
+        bpb.reserved_sectors.into(),
+        bpb.fat_size_sectors as u8,
+        0x10000 as *mut u16,
+    )
+    .unwrap();
+}
+
+fn get_next_cluster(prev: u16) -> u16 {
+    let fat = 0x10000 as *const u16;
+    unsafe {
+        let next = *fat.add(prev as usize);
+
+        if !(2..0xFFF8).contains(&next) {
+            0xFFFF
+        } else {
+            next
+        }
+    }
+}
+
+pub fn cluster_to_lba(cluster: u16, bpb: &BootSector) -> u32 {
+    let (root_dir_sector, n_sectors) = get_root_dir_sectors(bpb);
+    let first_data_sector = root_dir_sector + n_sectors;
+
+    first_data_sector + ((cluster as u32 - 2) * bpb.sectors_per_cluster as u32)
+}
+
+pub fn load_file(first_cluster: u16, addr: usize) {
+    let bpb = unsafe { &*(0x7c00 as *const BootSector) };
+    unsafe {
+        load_fat(bpb);
+    }
+    let mut cluster = first_cluster;
+    let mut addr = addr;
+    let bytes_per_cluster = bpb.bytes_per_sector * bpb.sectors_per_cluster as u16;
+    while cluster != 0xFFFF {
+        let lba = cluster_to_lba(cluster, bpb);
+        unsafe {
+            read_sectors_lba(lba, bpb.sectors_per_cluster, addr as *mut u16).unwrap();
+        }
+        cluster = get_next_cluster(cluster);
+        addr += bytes_per_cluster as usize;
+    }
 }

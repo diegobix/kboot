@@ -137,7 +137,7 @@ start_32:
   mov fs, ax
   mov gs, ax
 
-  mov ebp, 0x7c00
+  mov ebp, 0x9FFFF
   mov esp, ebp
 
   call STAGE2_DIR ; 
@@ -151,7 +151,7 @@ spin:
 dap_packet:
   db 0x10       ; Tamaño del DAP
   db 0          ; Reservado
-  dw 24         ; Numero de sectores
+  dw 20         ; Numero de sectores
   dw STAGE2_DIR ; Buffer de destino
   dw 0          ; Segmento del buffer de destino
   dq 76         ; LBA
